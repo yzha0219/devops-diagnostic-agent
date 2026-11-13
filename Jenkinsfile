@@ -114,24 +114,7 @@ pipeline {
 
                             echo "Waiting for API health check..."
 
-                            python -c '
-                            import time
-                            import urllib.request
-
-                            for attempt in range(30):
-                                try:
-                                    with urllib.request.urlopen(
-                                        "http://127.0.0.1:8000/health",
-                                        timeout=2
-                                    ) as response:
-                                        if response.status == 200:
-                                            print("API is healthy")
-                                            break
-                                except Exception:
-                                    time.sleep(1)
-                            else:
-                                raise SystemExit("API health check failed")
-                            '
+                            python -c "import time, urllib.request; exec('for attempt in range(30):\n try:\n  response = urllib.request.urlopen(\"http://127.0.0.1:8000/health\", timeout=2)\n  if response.status == 200:\n   print(\"API is healthy\")\n   break\n except Exception:\n  time.sleep(1)\nelse:\n raise SystemExit(\"API health check failed\")')"
 
                             echo "Running Agent Evaluation..."
 
