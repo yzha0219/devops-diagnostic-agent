@@ -1,0 +1,174 @@
+{
+  "total_cases": 3,
+  "passed": 3,
+  "failed": 0,
+  "pass_rate": 1.0,
+  "results": [
+    {
+      "case_id": "payment-db-auth-001",
+      "tool_recall": 1.0,
+      "first_tool_correct": true,
+      "actual_tools": [
+        "get_pod_status",
+        "get_pod_logs"
+      ],
+      "missing_tools": [],
+      "unexpected_tools": [],
+      "configured_forbidden_tools": [],
+      "forbidden_tool_violations": [],
+      "duplicate_tool_calls": [],
+      "duplicate_tool_call_count": 0,
+      "duplicate_tool_call_details": [],
+      "total_tool_calls": 2,
+      "unique_tool_calls": 2,
+      "duplicate_tool_call_rate": 0.0,
+      "diagnosis_accuracy": 1.0,
+      "matched_findings": [
+        true,
+        true,
+        true
+      ],
+      "evidence_recall": 1.0,
+      "missing_evidence": [],
+      "quality_score": 100.0,
+      "efficiency_score": 100.0,
+      "overall_score": 100.0,
+      "report_complete": true,
+      "report_checks": {
+        "status": "completed",
+        "status_completed": true,
+        "summary_present": true,
+        "recommendation_count": 4,
+        "min_recommendations": 2,
+        "recommendations_sufficient": true,
+        "tool_recall": 1.0,
+        "tool_recall_sufficient": true,
+        "evidence_recall": 1.0,
+        "evidence_recall_sufficient": true
+      },
+      "performance": {
+        "total_elapsed_ms": 17850.25,
+        "llm_call_count": 1,
+        "total_tokens": 1859,
+        "token_usage_available": true,
+        "tool_call_count": 2,
+        "tool_latency_ms_total": 0.02,
+        "tool_failure_count": 0,
+        "llm_latency_ms_total": 17837.93,
+        "llm_latency_ms_avg": 17837.93
+      },
+      "passed": true
+    },
+    {
+      "case_id": "unknown-pod-001",
+      "tool_recall": 1.0,
+      "first_tool_correct": true,
+      "actual_tools": [
+        "get_pod_status"
+      ],
+      "missing_tools": [],
+      "unexpected_tools": [],
+      "configured_forbidden_tools": [
+        "get_pod_logs",
+        "query_metrics"
+      ],
+      "forbidden_tool_violations": [],
+      "duplicate_tool_calls": [],
+      "duplicate_tool_call_count": 0,
+      "duplicate_tool_call_details": [],
+      "total_tool_calls": 1,
+      "unique_tool_calls": 1,
+      "duplicate_tool_call_rate": 0.0,
+      "diagnosis_accuracy": 1.0,
+      "matched_findings": [
+        true,
+        true
+      ],
+      "evidence_recall": 1.0,
+      "missing_evidence": [],
+      "quality_score": 100.0,
+      "efficiency_score": 100.0,
+      "overall_score": 100.0,
+      "report_complete": true,
+      "report_checks": {
+        "status": "completed",
+        "status_completed": true,
+        "summary_present": true,
+        "recommendation_count": 2,
+        "min_recommendations": 1,
+        "recommendations_sufficient": true,
+        "tool_recall": 1.0,
+        "tool_recall_sufficient": true,
+        "evidence_recall": 1.0,
+        "evidence_recall_sufficient": true
+      },
+      "performance": {
+        "total_elapsed_ms": 7516.02,
+        "llm_call_count": 1,
+        "total_tokens": 1353,
+        "token_usage_available": true,
+        "tool_call_count": 1,
+        "tool_latency_ms_total": 0.0,
+        "tool_failure_count": 0,
+        "llm_latency_ms_total": 7498.79,
+        "llm_latency_ms_avg": 7498.79
+      },
+      "passed": true
+    },
+    {
+      "case_id": "inventory-oom-001",
+      "tool_recall": 1.0,
+      "first_tool_correct": true,
+      "actual_tools": [
+        "get_pod_status",
+        "query_metrics"
+      ],
+      "missing_tools": [],
+      "unexpected_tools": [],
+      "configured_forbidden_tools": [],
+      "forbidden_tool_violations": [],
+      "duplicate_tool_calls": [],
+      "duplicate_tool_call_count": 0,
+      "duplicate_tool_call_details": [],
+      "total_tool_calls": 2,
+      "unique_tool_calls": 2,
+      "duplicate_tool_call_rate": 0.0,
+      "diagnosis_accuracy": 1.0,
+      "matched_findings": [
+        true,
+        true,
+        true
+      ],
+      "evidence_recall": 1.0,
+      "missing_evidence": [],
+      "quality_score": 100.0,
+      "efficiency_score": 100.0,
+      "overall_score": 100.0,
+      "report_complete": true,
+      "report_checks": {
+        "status": "completed",
+        "status_completed": true,
+        "summary_present": true,
+        "recommendation_count": 5,
+        "min_recommendations": 2,
+        "recommendations_sufficient": true,
+        "tool_recall": 1.0,
+        "tool_recall_sufficient": true,
+        "evidence_recall": 1.0,
+        "evidence_recall_sufficient": true
+      },
+      "performance": {
+        "total_elapsed_ms": 16336.4,
+        "llm_call_count": 1,
+        "total_tokens": 1876,
+        "token_usage_available": true,
+        "tool_call_count": 2,
+        "tool_latency_ms_total": 0.02,
+        "tool_failure_count": 0,
+        "llm_latency_ms_total": 16318.65,
+        "llm_latency_ms_avg": 16318.65
+      },
+      "passed": true
+    }
+  ]
+}

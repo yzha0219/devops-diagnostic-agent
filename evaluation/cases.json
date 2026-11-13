@@ -1,0 +1,129 @@
+[
+  {
+    "id": "payment-db-auth-001",
+    "question": "payment-api 为什么频繁重启？请先查看 Pod 状态，再根据证据决定是否查询日志和监控指标。",
+    "cluster": "prod-cluster",
+    "namespace": "default",
+    "pod_name": "payment-api-7d9c7d",
+    "max_steps": 6,
+
+    "expected_first_tool": "get_pod_status",
+
+    "required_tools": [
+      "get_pod_status",
+      "get_pod_logs"
+    ],
+
+    "allowed_tools": [
+      "get_pod_status",
+      "get_pod_logs",
+      "query_metrics",
+      "search_runbook"
+    ],
+
+    "required_evidence_sources": [
+      "get_pod_status",
+      "get_pod_logs"
+    ],
+
+    "expected_findings": [
+      ["CrashLoopBackOff"],
+      [
+        "password authentication failed",
+        "数据库认证失败",
+        "数据库密码认证失败"
+      ],
+      ["app_user"]
+    ],
+
+    "min_recommendations": 2
+  },
+  {
+    "id": "unknown-pod-001",
+
+    "question": "请确认 Pod unknown-api-123 是否存在。如果不存在，请明确说明未找到，不要推测故障原因，也不要继续查询日志和指标。",
+
+    "cluster": "prod-cluster",
+    "namespace": "default",
+    "pod_name": "unknown-api-123",
+    "max_steps": 4,
+
+    "expected_first_tool": "get_pod_status",
+
+    "required_tools": [
+        "get_pod_status"
+    ],
+
+    "allowed_tools": [
+        "get_pod_status"
+    ],
+
+    "forbidden_tools": [
+        "get_pod_logs",
+        "query_metrics"
+    ],
+    
+    "required_evidence_sources": [
+        "get_pod_status"
+    ],
+
+    "expected_findings": [
+        ["unknown-api-123"],
+        ["不存在", "未找到", "not found", "does not exist"]
+    ],
+
+    "min_recommendations": 1
+    },
+    {
+        "id": "inventory-oom-001",
+
+        "question": "inventory-api 为什么频繁重启？请先检查 Pod 状态，再结合监控指标和必要的日志判断原因。重点关注是否存在 OOMKilled，不要仅凭退出码判断故障。",
+
+        "cluster": "prod-cluster",
+        "namespace": "default",
+        "pod_name": "inventory-api-6f8c9d",
+        "max_steps": 6,
+
+        "expected_first_tool": "get_pod_status",
+
+        "required_tools": [
+            "get_pod_status",
+            "query_metrics"
+        ],
+
+        "allowed_tools": [
+            "get_pod_status",
+            "get_pod_logs",
+            "query_metrics",
+            "search_runbook"
+        ],
+
+        "required_evidence_sources": [
+            "get_pod_status",
+            "query_metrics"
+        ],
+
+        "expected_findings": [
+            [
+            "OOMKilled",
+            "OOM killed",
+            "内存超限",
+            "内存溢出",
+            "内存不足"
+            ],
+            [
+            "97.8",
+            "接近内存限制",
+            "内存使用率过高",
+            "内存占用过高"
+            ],
+            [
+            "137",
+            "退出码 137",
+            "exit code 137"
+            ]
+        ],
+
+        "min_recommendations": 2
+        }
+]
