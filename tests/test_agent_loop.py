@@ -546,6 +546,12 @@ def test_agent_propagates_llm_timeout(monkeypatch):
         TimeoutClient,
     )
 
+    monkeypatch.setattr(
+    agent_module,
+    "llm_api_key",
+    lambda: "test-api-key",
+)
+
     with pytest.raises(openai.APITimeoutError):
         agent_module.run_llm_agent(make_request())
 
