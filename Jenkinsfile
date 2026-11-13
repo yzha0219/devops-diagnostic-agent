@@ -114,7 +114,7 @@ pipeline {
 
                             echo "Waiting for API health check..."
 
-                            python - <<'"'"'PY'"'"'
+                            python -c '
                             import time
                             import urllib.request
 
@@ -131,7 +131,7 @@ pipeline {
                                     time.sleep(1)
                             else:
                                 raise SystemExit("API health check failed")
-                            PY
+                            '
 
                             echo "Running Agent Evaluation..."
 
