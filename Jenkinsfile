@@ -115,10 +115,22 @@ pipeline {
                             echo "Waiting for API health check..."
 
                             python scripts/health_check.py
-                            
+
                             echo "Running Agent Evaluation..."
 
                             python scripts/evaluate_agent.py
+
+                            echo "Running Agent Evaluation..."
+
+            python scripts/evaluate_agent.py
+
+            echo "Running AI Agent Quality Gate..."
+
+            python scripts/quality_gate.py
+
+            echo "Running Regression Test..."
+
+            python scripts/regression_test.py
 
                             echo "Running Regression Test..."
 
