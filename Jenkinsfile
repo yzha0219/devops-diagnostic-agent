@@ -71,7 +71,7 @@ pipeline {
             }
         }
 
-        stage('Evaluation and Regression') {
+        stage('Agent Evaluation') {
             steps {
                 withCredentials([
                     string(
@@ -85,40 +85,61 @@ pipeline {
                         WORKSPACE_REL="${WORKSPACE#"$JENKINS_AGENT_WORKDIR"/}"
 
                         docker run --rm \
-                          --mount type=volume,source=jenkins_agent_workspace,target=/agent \
-                          --workdir "/agent/${WORKSPACE_REL}" \
-                          -e LLM_API_KEY \
-                          -e LLM_BASE_URL \
-                          -e LLM_MODEL \
-                          python:3.12-slim \
-                          sh -lc '
+                            --mount type=volume,source=jenkins_agent_workspace,target=/agent \
+                            --workdir "/agent/${WORKSPACE_REL}" \
+                            -e LLM_API_KEY \
+                            -e LLM_BASE_URL \
+                            -e LLM_MODEL \
+                            python:3.12-slim \
+                            sh -lc '
+                                set -eu
+
+                                . .ci-venv/bin/activate
+
+                                echo "Starting FastAPI..."
+
+                                uvicorn app.main:app \
+                                    --host 0.0.0.0 \
+                                    --port 8000 \
+                                    > /tmp/agent-api.log 2>&1 &
+
+                                API_PID=$!
+
+                                cleanup() {
+                                    kill "$API_PID" 2>/dev/null || true
+                                    wait "$API_PID" 2>/dev/null || true
+                                }
+
+                                trap cleanup EXIT
+
+                                echo "Waiting for API health check..."
+
+                                python scripts/health_check.py
+
+                                echo "Running Agent Evaluation..."
+
+                                python scripts/evaluate_agent.py
+                            '
+                    '''
+                }
+            }
+        }
+
+        stage('Quality Gate and Regression') {
+            steps {
+                sh '''
+                    set -eu
+
+                    WORKSPACE_REL="${WORKSPACE#"$JENKINS_AGENT_WORKDIR"/}"
+
+                    docker run --rm \
+                        --mount type=volume,source=jenkins_agent_workspace,target=/agent \
+                        --workdir "/agent/${WORKSPACE_REL}" \
+                        python:3.12-slim \
+                        sh -lc '
                             set -eu
 
                             . .ci-venv/bin/activate
-
-                            echo "Starting FastAPI..."
-
-                            uvicorn app.main:app \
-                              --host 0.0.0.0 \
-                              --port 8000 \
-                              > /tmp/agent-api.log 2>&1 &
-
-                            API_PID=$!
-
-                            cleanup() {
-                                kill "$API_PID" 2>/dev/null || true
-                                wait "$API_PID" 2>/dev/null || true
-                            }
-
-                            trap cleanup EXIT
-
-                            echo "Waiting for API health check..."
-
-                            python scripts/health_check.py
-
-                            echo "Running Agent Evaluation..."
-
-                            python scripts/evaluate_agent.py
 
                             echo "Running AI Agent Quality Gate..."
 
@@ -127,9 +148,8 @@ pipeline {
                             echo "Running Regression Test..."
 
                             python scripts/regression_test.py
-                          '
-                    '''
-                }
+                        '
+                '''
             }
         }
     }
