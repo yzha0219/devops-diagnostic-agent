@@ -1,0 +1,110 @@
+pipeline {
+    agent {
+        label 'python && pr'
+    }
+
+    options {
+        timestamps()
+        skipDefaultCheckout(true)
+        disableConcurrentBuilds()
+        timeout(time: 15, unit: 'MINUTES')
+    }
+
+    parameters {
+        string(
+            name: 'PR_NUMBER',
+            defaultValue: '',
+            description: 'GitHub Pull Request number'
+        )
+    }
+
+    environment {
+        REPO_URL = 'https://github.com/yzha0219/devops-diagnostic-agent.git'
+    }
+
+    stages {
+        stage('Validate Parameters') {
+            steps {
+                script {
+                    if (!(params.PR_NUMBER ==~ /^[1-9][0-9]*$/)) {
+                        error('PR_NUMBER must be a positive integer')
+                    }
+                }
+
+                echo "Validating Pull Request #${params.PR_NUMBER}"
+            }
+        }
+
+        stage('Checkout Pull Request') {
+            steps {
+                dir('pr-source') {
+                    deleteDir()
+
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[
+                            name: "refs/remotes/origin/pr/${params.PR_NUMBER}"
+                        ]],
+                        userRemoteConfigs: [[
+                            url: env.REPO_URL,
+                            credentialsId: 'github-readonly',
+                            refspec: '+refs/pull/*/head:refs/remotes/origin/pr/*'
+                        ]]
+                    ])
+                }
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                dir('pr-source') {
+                    sh '''
+                        set -eu
+
+                        echo "===== Python Version ====="
+                        python --version
+
+                        echo "===== uv Version ====="
+                        uv --version
+
+                        python -m venv .ci-venv
+
+                        uv pip install \
+                            --python .ci-venv/bin/python \
+                            -r requirements.txt
+                    '''
+                }
+            }
+        }
+
+        stage('Run Pytest') {
+            steps {
+                dir('pr-source') {
+                    sh '''
+                        set -eu
+
+                        .ci-venv/bin/python -m pytest -q \
+                            --junitxml=pytest-results.xml
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts(
+                artifacts: 'pr-source/pytest-results.xml',
+                allowEmptyArchive: true
+            )
+        }
+
+        success {
+            echo "PR Validation PASSED"
+        }
+
+        failure {
+            echo "PR Validation FAILED"
+        }
+    }
+}
