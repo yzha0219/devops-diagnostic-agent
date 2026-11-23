@@ -63,36 +63,25 @@ pipeline {
                         description: params.STATUS_DESCRIPTION
                     ]
 
-                    withCredentials([
-                        string(
-                            credentialsId: 'github-status-writer',
-                            variable: 'GITHUB_STATUS_TOKEN'
-                        )
-                    ]) {
-                        def response = httpRequest(
-                            httpMode: 'POST',
-                            url: "https://api.github.com/repos/${env.GITHUB_REPOSITORY}/statuses/${params.COMMIT_SHA}",
-                            contentType: 'APPLICATION_JSON',
-                            acceptType: 'APPLICATION_JSON',
-                            customHeaders: [
-                                [
-                                    name: 'Authorization',
-                                    value: "Bearer ${env.GITHUB_STATUS_TOKEN}",
-                                    maskValue: true
-                                ],
-                                [
-                                    name: 'X-GitHub-Api-Version',
-                                    value: '2022-11-28'
-                                ]
-                            ],
-                            requestBody: JsonOutput.toJson(payload),
-                            validResponseCodes: '201',
-                            consoleLogResponseBody: false,
-                            quiet: true
-                        )
+                    def response = httpRequest(
+                        httpMode: 'POST',
+                        url: "https://api.github.com/repos/${env.GITHUB_REPOSITORY}/statuses/${params.COMMIT_SHA}",
+                        authentication: 'github-status-writer-basic',
+                        contentType: 'APPLICATION_JSON',
+                        acceptType: 'APPLICATION_JSON',
+                        customHeaders: [
+                            [
+                                name: 'X-GitHub-Api-Version',
+                                value: '2022-11-28'
+                            ]
+                        ],
+                        requestBody: JsonOutput.toJson(payload),
+                        validResponseCodes: '201',
+                        consoleLogResponseBody: false,
+                        quiet: true
+                    )
 
-                        echo "GitHub Commit Status API returned HTTP ${response.status}"
-                    }
+                    echo "GitHub Commit Status API returned HTTP ${response.status}"
                 }
             }
         }
