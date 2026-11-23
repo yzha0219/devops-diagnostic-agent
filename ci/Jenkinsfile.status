@@ -1,0 +1,110 @@
+import groovy.json.JsonOutput
+
+pipeline {
+    agent {
+        label 'status'
+    }
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+        timeout(time: 5, unit: 'MINUTES')
+    }
+
+    parameters {
+        string(name: 'COMMIT_SHA', defaultValue: '', description: 'Exact tested commit SHA')
+        choice(name: 'STATUS_STATE', choices: ['pending', 'success', 'failure'], description: 'GitHub commit status')
+        string(name: 'STATUS_DESCRIPTION', defaultValue: '', description: 'Status description, max 140 characters')
+        string(name: 'PR_NUMBER', defaultValue: '', description: 'GitHub Pull Request number')
+    }
+
+    environment {
+        GITHUB_REPOSITORY = 'yzha0219/devops-diagnostic-agent'
+        STATUS_CONTEXT = 'Jenkins PR Validation'
+    }
+
+    stages {
+        stage('Validate Parameters') {
+            steps {
+                script {
+                    if (!(params.COMMIT_SHA ==~ /(?i)[0-9a-f]{40}/)) {
+                        error('COMMIT_SHA must be a 40-character hexadecimal SHA')
+                    }
+
+                    if (!(params.PR_NUMBER ==~ /^[1-9][0-9]*$/)) {
+                        error('PR_NUMBER must be a positive integer')
+                    }
+
+                    if (!(params.STATUS_STATE in ['pending', 'success', 'failure'])) {
+                        error('Invalid STATUS_STATE')
+                    }
+
+                    if (!params.STATUS_DESCRIPTION?.trim()) {
+                        error('STATUS_DESCRIPTION must not be empty')
+                    }
+
+                    if (params.STATUS_DESCRIPTION.length() > 140) {
+                        error('STATUS_DESCRIPTION must not exceed 140 characters')
+                    }
+                }
+
+                echo "Validated status request for PR #${params.PR_NUMBER}"
+                echo "Commit: ${params.COMMIT_SHA}"
+                echo "State: ${params.STATUS_STATE}"
+            }
+        }
+
+        stage('Publish GitHub Commit Status') {
+            steps {
+                script {
+                    def payload = [
+                        state      : params.STATUS_STATE,
+                        context    : env.STATUS_CONTEXT,
+                        description: params.STATUS_DESCRIPTION
+                    ]
+
+                    withCredentials([
+                        string(
+                            credentialsId: 'github-status-writer',
+                            variable: 'GITHUB_STATUS_TOKEN'
+                        )
+                    ]) {
+                        def response = httpRequest(
+                            httpMode: 'POST',
+                            url: "https://api.github.com/repos/${env.GITHUB_REPOSITORY}/statuses/${params.COMMIT_SHA}",
+                            contentType: 'APPLICATION_JSON',
+                            acceptType: 'APPLICATION_JSON',
+                            customHeaders: [
+                                [
+                                    name: 'Authorization',
+                                    value: "Bearer ${env.GITHUB_STATUS_TOKEN}",
+                                    maskValue: true
+                                ],
+                                [
+                                    name: 'X-GitHub-Api-Version',
+                                    value: '2022-11-28'
+                                ]
+                            ],
+                            requestBody: JsonOutput.toJson(payload),
+                            validResponseCodes: '201',
+                            consoleLogResponseBody: false,
+                            quiet: true
+                        )
+
+                        echo "GitHub Commit Status API returned HTTP ${response.status}"
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'GitHub Commit Status published successfully'
+        }
+
+        failure {
+            echo 'GitHub Commit Status publishing failed'
+        }
+    }
+}
