@@ -1,3 +1,33 @@
+def publishCommitStatus(String state, String description) {
+    def commitSha = env.TESTED_COMMIT_SHA ?: ''
+
+    if (!(commitSha ==~ /^[0-9a-fA-F]{40}$/)) {
+        echo 'Skipping GitHub status publication: invalid or missing commit SHA'
+        return
+    }
+
+    build job: 'github-commit-status-writer',
+        parameters: [
+            string(
+                name: 'COMMIT_SHA',
+                value: commitSha
+            ),
+            string(
+                name: 'STATUS_STATE',
+                value: state
+            ),
+            string(
+                name: 'STATUS_DESCRIPTION',
+                value: description
+            ),
+            string(
+                name: 'PR_NUMBER',
+                value: params.PR_NUMBER
+            )
+        ],
+        wait: true,
+        propagate: true
+}
 pipeline {
     agent {
         label 'python && pr'
@@ -140,10 +170,20 @@ pipeline {
 
         success {
             echo "PR Validation PASSED"
+
+            publishCommitStatus(
+                'success',
+                'PR validation passed'
+            )
         }
 
         failure {
             echo "PR Validation FAILED"
+
+            publishCommitStatus(
+                'failure',
+                'PR validation failed'
+            )
         }
     }
 }
