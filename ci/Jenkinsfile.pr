@@ -54,7 +54,21 @@ pipeline {
                 }
             }
         }
+        stage('Capture PR Commit SHA') {
+            steps {
+                dir('pr-source') {
+                    script {
+                        env.TESTED_COMMIT_SHA = sh(
+                            script: 'git rev-parse HEAD',
+                            returnStdout: true
+                        ).trim()
+                    }
 
+                    echo "PR Number: ${params.PR_NUMBER}"
+                    echo "Tested Commit SHA: ${env.TESTED_COMMIT_SHA}"
+                }
+            }
+        }
         stage('Install Dependencies') {
             steps {
                 dir('pr-source') {
