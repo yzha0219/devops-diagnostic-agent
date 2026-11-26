@@ -69,6 +69,31 @@ pipeline {
                 }
             }
         }
+        stage('Publish Pending Status') {
+            steps {
+                build job: 'github-commit-status-writer',
+                    parameters: [
+                        string(
+                            name: 'COMMIT_SHA',
+                            value: env.TESTED_COMMIT_SHA
+                        ),
+                        string(
+                            name: 'STATUS_STATE',
+                            value: 'pending'
+                        ),
+                        string(
+                            name: 'STATUS_DESCRIPTION',
+                            value: 'PR validation started'
+                        ),
+                        string(
+                            name: 'PR_NUMBER',
+                            value: params.PR_NUMBER
+                        )
+                    ],
+                    wait: true,
+                    propagate: true
+            }
+        }
         stage('Install Dependencies') {
             steps {
                 dir('pr-source') {
